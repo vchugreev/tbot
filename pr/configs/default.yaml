@@ -1,0 +1,9 @@
+log:
+  level: debug
+
+server:
+  addr: '[::1]:10002'
+
+db:
+  url: 'postgres://postgres:123456@localhost:15432/tbot' # Подключение к базе, запущенной через docker
+  # !!! не забыть проверить подключение в .env (если он используется для sqlx cli)

@@ -1,0 +1,17 @@
+log:
+  level: debug
+
+server:
+  addr: '[::1]:10000'
+
+client:
+  tinkoff:
+    ws: wss://api-invest.tinkoff.ru/openapi/md/v1/md-openapi/ws
+    figis: [ BBG000B9XRY4, BBG000N9MNX3 ]
+    token:
+  pr:
+    addr: '[::1]:10002'
+
+# BBG000B9XRY4 - AAPL
+# BBG000BBQCY0 - AMD
+# BBG000N9MNX3 - TSLA

@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package incoming;
+
+service PriceStream {
+  rpc SubscribeToTrade(Empty) returns (stream Trade) {}
+  rpc SubscribeToOrderBook(Empty) returns (stream OrderBook) {}
+}
+
+message Empty {}
+
+message Trade {
+  float price = 1;
+  uint64 volume = 2;
+  string figi = 3;
+  int64 minute_rounded = 4; // время округленное до минуты, к ней относится сделка (можно грубо оценить задержу с отправкой на стороне tinkoff),
+  int64 sent = 5; // время, когда trade был отправлен с tinkoff
+  int64 received = 6; // время, когда trade был получен на стороне ipm (можно оценить задержки внутри системы)
+}
+
+message OrderBook {
+  string figi = 1;
+  uint32 depth = 2;
+  repeated OrderBookItem bids = 3;
+  repeated OrderBookItem asks = 4;
+  int64 sent = 5;
+  int64 received = 6;
+}
+
+message OrderBookItem {
+  float price = 1;
+  uint64 volume = 2;
+}

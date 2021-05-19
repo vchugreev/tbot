@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package storage;
+
+import "incoming.proto";
+
+service PriceStorage {
+  rpc AddTrade(incoming.Trade) returns (Resp) {}
+  rpc AddOrderBook(incoming.OrderBook) returns (Resp) {}
+}
+
+message Resp {
+  int32 status = 1; // по умолчанию 0 - все в порядке
+  string message = 2;   // Если отработал с ошибкой, то здесь будет сообщение об ошибке
+}

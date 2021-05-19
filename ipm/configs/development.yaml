@@ -1,0 +1,4 @@
+client:
+  tinkoff:
+    token: <sandbox token>
+    figis: [ BBG000B9XRY4, BBG000N9MNX3 ]

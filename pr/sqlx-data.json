@@ -1,0 +1,92 @@
+{
+  "db": "PostgreSQL",
+  "2991b687ad8d4cfa567f52af5abd49e0e8e66a762632dfbeb5f694e508abffba": {
+    "query": "\nINSERT\nINTO order_book (figi, received, content)\nVALUES ($1, $2, $3)\nRETURNING id\n        ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Timestamp",
+          "Jsonb"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "2b0a4f3fa5c3178619fe5282bae14117c23818a862f1fa6d5c57a6adedf3b40c": {
+    "query": "\nDELETE\nFROM order_book\nWHERE received >= $1\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Timestamp"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "e74e694223561110daecf93cf2a8060f7061e832be460e27ae9e96ffa0da8880": {
+    "query": "\nSELECT min(mc)\nFROM (\n    SELECT min(received) AS mc FROM trade WHERE received >= $1 AND received < $2\n    UNION\n    SELECT min(received) AS mc FROM order_book WHERE received >= $1 AND received < $2\n) AS received\n        ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "min",
+          "type_info": "Timestamp"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Timestamp",
+          "Timestamp"
+        ]
+      },
+      "nullable": [
+        null
+      ]
+    }
+  },
+  "ef1a8d409870568f1a2ab0c8b3bb246537eb11f41bf4912df928b06bc35e8d0d": {
+    "query": "\nDELETE\nFROM trade\nWHERE received >= $1\n        ",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Timestamp"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "fda12599e9c92c17422b8ee4533d5c4f70ec08217859e286b93388fed249ce02": {
+    "query": "\nINSERT\nINTO trade (figi, received, content)\nVALUES ($1, $2, $3)\nRETURNING id\n        ",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "id",
+          "type_info": "Int4"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Timestamp",
+          "Jsonb"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  }
+}

@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  tbot_pg:
+    image: postgres:13.2-alpine
+    container_name: tbot_pg
+    expose:
+      - "5432"
+    ports:
+      - "15432:5432"  # пробрасываем на 15432 потому, что 5432 может быть занят, если postgres был установлен как локальная база данных
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+    volumes:
+      - tbot_pg_volume:/var/lib/postgresql/data
+    networks:
+      - tbot_network
+    command: -c "log_statement=all"
+
+volumes:
+  tbot_pg_volume:
+
+networks:
+  tbot_network:

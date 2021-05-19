@@ -1,0 +1,6 @@
+log:
+  level: info
+
+client:
+  tinkoff:
+    token: <real token>
