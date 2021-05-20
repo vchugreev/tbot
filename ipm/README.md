@@ -13,7 +13,7 @@ RUN_ENV=Production cargo run
 
 Запуск с указанием директории, в которой находятся конфиг файлы
 ```shell
-cargo run -- -p ./configs/
+cargo run -- -c ./configs/
 ```
 
 Запуск в режиме эмуляции ws ридера 
