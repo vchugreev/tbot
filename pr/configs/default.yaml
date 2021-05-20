@@ -6,4 +6,5 @@ server:
 
 db:
   url: 'postgres://postgres:123456@localhost:15432/tbot' # Подключение к базе, запущенной через docker
+  #url: 'postgres://postgres:123456@localhost/hermes' # Подключение к локальной базе
   # !!! не забыть проверить подключение в .env (если он используется для sqlx cli)
