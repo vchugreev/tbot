@@ -1,3 +1,4 @@
+use anyhow::Context;
 use chrono::NaiveDate;
 use clap::{App, Arg, ArgMatches};
 use flexi_logger::Logger;
@@ -58,13 +59,17 @@ async fn main() -> anyhow::Result<()> {
 
     // В случае режима чтения мы указываем не только флаг, но и дату, для которой запускаем этот режим.
     let reading_date = args.value_of(READING).unwrap_or("");
-    let speed = args.value_of(SPEED).unwrap_or("1");
-    let speed_rate = speed.parse::<u16>()?;
+    let speed = get_speed(&args)?;
 
-    // Обязательно должен быть указан один из двух режимов, в котором запущен севрис
+    // Обязательно должен быть указан один из двух режимов, в котором запущен сервис
     if !is_storing && reading_date.is_empty() {
         let err = anyhow::Error::msg("startup mode not defined, must be specified -s or -r (storing or reading)");
         return anyhow::Result::Err(err);
+    }
+
+    if is_storing && !reading_date.is_empty() {
+        // Недостижимость этого условия обеспечивает conflicts_with в get_args
+        unreachable!("it must by only one mode: storing or reading");
     }
 
     // Одновременно использовать оба режима не допускается
@@ -116,7 +121,7 @@ async fn main() -> anyhow::Result<()> {
         db::reading::run(
             cfg.db.url.clone(),
             date,
-            speed_rate,
+            speed,
             fec_trade_sender,
             fec_order_book_sender,
             shutdown.clone(),
@@ -132,6 +137,16 @@ async fn main() -> anyhow::Result<()> {
     info!("service finished");
 
     Ok(())
+}
+
+fn get_speed(args: &ArgMatches) -> anyhow::Result<u16> {
+    let speed = args.value_of(SPEED).unwrap_or("1");
+    let result = speed.parse::<u16>().context("speed must by only unsigned integer: 1, 2, 3, ...")?;
+    if result == 0 {
+        let e = anyhow::Error::msg("speed must be greater than zero");
+        return Err(e);
+    }
+    Ok(result)
 }
 
 fn get_args() -> ArgMatches {
