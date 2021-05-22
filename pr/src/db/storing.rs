@@ -8,10 +8,9 @@ use sqlx::{ConnectOptions, Postgres};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
+use super::queries::{add_order_book, add_trade, delete_today_order_books, delete_today_trades};
 use crate::domain::order_book::OrderBook as DomainOrderBook;
 use crate::domain::trade::Trade as DomainTrade;
-
-use super::queries::{add_order_book, add_trade, delete_today_order_books, delete_today_trades};
 
 const MIGRATIONS_DEFAULT_PATH: &str = "./migrations/";
 
@@ -37,7 +36,7 @@ pub async fn run(
     let m = Migrator::new(std::path::Path::new(path)).await?;
     m.run(&pool).await?;
 
-    // Запускаем очистку таблиц на сегодняшную дату - автоочистка удобна при многократном запуске
+    // Запускаем очистку таблиц на сегодняшнюю дату - автоочистка удобна при многократном запуске
     delete_today_trades(&pool).await?;
     delete_today_order_books(&pool).await?;
 

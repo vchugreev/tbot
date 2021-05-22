@@ -13,11 +13,10 @@ use sqlx::{ConnectOptions, Postgres, Row};
 use tokio::sync::broadcast;
 use tokio_util::sync::CancellationToken;
 
+use super::queries::select_min_received_by_date;
 use crate::domain::common::Received;
 use crate::domain::order_book::OrderBook as DomainOrderBook;
 use crate::domain::trade::Trade as DomainTrade;
-
-use super::queries::select_min_received_by_date;
 
 const TRADE_TABLE: &str = "trade";
 const ORDER_BOOK_TABLE: &str = "order_book";
