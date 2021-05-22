@@ -8,16 +8,16 @@ docker-stop:
 docker-remove:
 	${DOCKER_COMPOSE} down --remove-orphans -v
 
-# Запустить зависимости
-run-deps:
+# Запустить и подготовить базу данных
+# Решение по созданию базы с предварительной проверкой ее существования заимствованно отсюда: https://stackoverflow.com/a/36591842/7752659
+run-db:
 	${DOCKER_COMPOSE} up -d tbot_pg
 	sleep 2
-	# Создать базу данных, если ее еще нет, решение заимствованно отсюда: https://stackoverflow.com/a/36591842/7752659
 	(${DOCKER_COMPOSE} exec -T tbot_pg psql -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'tbot'" | grep -q 1) || \
 	(${DOCKER_COMPOSE} exec -T tbot_pg psql -U postgres -c "CREATE DATABASE tbot")
 
-# Очистить и перезапустить контейнеры
-reset-db: docker-remove run-deps
+# Очистить базу и перезапустить контейнеры
+reset-db: docker-remove run-db
 
 # Запустить два сервиса (pr и ipm) в рамках сценария сохранения данных
 storing:
