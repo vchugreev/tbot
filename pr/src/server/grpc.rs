@@ -7,11 +7,11 @@ use crate::domain::order_book::OrderBook as DomainOrderBook;
 use crate::domain::trade::Trade as DomainTrade;
 
 use super::receiver::ReceiverMaker;
-use super::services::storage::{
+use super::services::price_storage::{
     storage::price_storage_server::PriceStorageServer, // двойной storage (super::services::storage::storage...) из-за того, что названия модуля и протофайла совпадают
     PriceStorageService,
 };
-use super::services::stream::{incoming::price_stream_server::PriceStreamServer, PriceStreamService};
+use super::services::price_stream::{incoming::price_stream_server::PriceStreamServer, PriceStreamService};
 
 /// Запускает два сервиса в рамках одного grpc сервера.
 /// Один сервис транслирует данные из базы наружу, а другой - извне в базу данных.
@@ -33,17 +33,15 @@ pub async fn run(
     info!("grpc server listening on: {}", addr);
 
     // этот сервис транслирует поток данных, вычитанных из базы наружу, это нужно, чтобы воспроизводить исторические данные
-    let service = PriceStreamService::new(trade_rm, order_book_rm);
-    let pss = PriceStreamServer::new(service);
+    let stream_service = PriceStreamService::new(trade_rm, order_book_rm);
 
-    // этот сервис обрабатывает вызовы, которые иницируют добавление данных в базу, т.е. через его эндпоинты можно добавить данные в базу
-    let service = PriceStorageService::new(fdc_trade_sender, fdc_order_book_sender);
-    let prs = PriceStorageServer::new(service);
+    // этот сервис обрабатывает вызовы, которые инициируют добавление данных в базу, т.е. через его эндпоинты можно добавить данные в базу
+    let storage_service = PriceStorageService::new(fdc_trade_sender, fdc_order_book_sender);
 
     tokio::spawn(async move {
         let res = Server::builder()
-            .add_service(pss)
-            .add_service(prs)
+            .add_service(PriceStreamServer::new(stream_service))
+            .add_service(PriceStorageServer::new(storage_service))
             .serve_with_shutdown(addr, async {
                 shutdown.cancelled().await;
                 info!("grpc server finished");

@@ -29,8 +29,8 @@ mod server {
             pub mod convert;
             pub mod utils;
         }
-        pub mod storage;
-        pub mod stream;
+        pub mod price_storage;
+        pub mod price_stream;
     }
 }
 
@@ -141,7 +141,9 @@ async fn main() -> anyhow::Result<()> {
 
 fn get_speed(args: &ArgMatches) -> anyhow::Result<u16> {
     let speed = args.value_of(SPEED).unwrap_or("1");
-    let result = speed.parse::<u16>().context("speed must by only unsigned integer: 1, 2, 3, ...")?;
+    let result = speed
+        .parse::<u16>()
+        .context("speed must by only unsigned integer: 1, 2, 3, ...")?;
     if result == 0 {
         let e = anyhow::Error::msg("speed must be greater than zero");
         return Err(e);
