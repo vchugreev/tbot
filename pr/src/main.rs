@@ -67,13 +67,10 @@ async fn main() -> anyhow::Result<()> {
         return anyhow::Result::Err(err);
     }
 
+    // Одновременно использовать оба режима не допускается, этот запрет реализован в get_args через .conflicts_with
     if is_storing && !reading_date.is_empty() {
-        // Недостижимость этого условия обеспечивает conflicts_with в get_args
-        unreachable!("it must by only one mode: storing or reading");
+        unreachable!("there must by only one mode: storing or reading");
     }
-
-    // Одновременно использовать оба режима не допускается
-    // Эта логика реализована в get_args через .conflicts_with
 
     let cfg: Settings = Settings::new(configs_path).expect("configs can't be loaded");
 
@@ -93,12 +90,10 @@ async fn main() -> anyhow::Result<()> {
     let (fdc_trade_sender, fdc_trade_receiver) = mpsc::channel::<Trade>(20);
     let (fdc_order_book_sender, fdc_order_book_receiver) = mpsc::channel::<OrderBook>(20);
 
-    let trade_rm = ReceiverMaker::<Trade>::new(fec_trade_sender.clone());
-    let order_book_rm = ReceiverMaker::<OrderBook>::new(fec_order_book_sender.clone());
     server::grpc::run(
         cfg.server.addr,
-        trade_rm,
-        order_book_rm,
+        ReceiverMaker::<Trade>::new(fec_trade_sender.clone()),
+        ReceiverMaker::<OrderBook>::new(fec_order_book_sender.clone()),
         fdc_trade_sender,
         fdc_order_book_sender,
         shutdown.clone(),
