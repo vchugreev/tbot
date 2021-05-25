@@ -16,7 +16,7 @@ const MIGRATIONS_DEFAULT_PATH: &str = "./migrations/";
 
 pub async fn run(
     db_url: String,
-    migrations_path: &str,
+    migrations_path: Option<&str>,
     trade_receiver: mpsc::Receiver<DomainTrade>,
     order_book_receiver: mpsc::Receiver<DomainOrderBook>,
     shutdown: CancellationToken,
@@ -29,8 +29,8 @@ pub async fn run(
     // let pool = PgPoolOptions::new().max_connections(5).connect(db_url.as_str()).await?;
 
     let path = match migrations_path {
-        "" => MIGRATIONS_DEFAULT_PATH,
-        _ => migrations_path,
+        Some(p) => p,
+        None => MIGRATIONS_DEFAULT_PATH,
     };
 
     let m = Migrator::new(std::path::Path::new(path)).await?;

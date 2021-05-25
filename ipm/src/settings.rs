@@ -44,10 +44,10 @@ pub struct Settings {
 
 // Пример отсюда: https://blog.logrocket.com/configuration-management-in-rust-web-services/
 impl Settings {
-    pub fn new(configs_path: &str) -> Result<Self, ConfigError> {
+    pub fn new(configs_path: Option<&str>) -> Result<Self, ConfigError> {
         let path = match configs_path {
-            "" => CONFIGS_DEFAULT_PATH,
-            _ => configs_path,
+            Some(p) => p,
+            None => CONFIGS_DEFAULT_PATH,
         };
 
         let env = std::env::var("RUN_ENV").unwrap_or_else(|_| "Development".into());

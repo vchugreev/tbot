@@ -19,13 +19,9 @@ mod settings;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let args = Args::new();
-
-    let configs_path = args.get_configs_path();
-    let migrations_path = args.get_migrations_path();
-
     let mode = args.get_mode()?;
 
-    let cfg: Settings = Settings::new(configs_path).expect("configs can't be loaded");
+    let cfg: Settings = Settings::new(args.get_configs_path()).expect("configs can't be loaded");
 
     Logger::with_str(cfg.log.level.as_str())
         .format(flexi_logger::colored_detailed_format)
@@ -57,7 +53,7 @@ async fn main() -> anyhow::Result<()> {
         Mode::Storing => {
             db::storing::run(
                 cfg.db.url.clone(),
-                migrations_path,
+                args.get_migrations_path(),
                 fdc_trade_receiver,
                 fdc_order_book_receiver,
                 shutdown.clone(),

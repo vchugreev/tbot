@@ -63,12 +63,12 @@ impl Args {
         Args(am)
     }
 
-    pub fn get_configs_path(&self) -> &str {
-        self.value_of(CONFIGS).unwrap_or("")
+    pub fn get_configs_path(&self) -> Option<&str> {
+        self.value_of(CONFIGS)
     }
 
-    pub fn get_migrations_path(&self) -> &str {
-        self.value_of(MIGRATIONS).unwrap_or("")
+    pub fn get_migrations_path(&self) -> Option<&str> {
+        self.value_of(MIGRATIONS)
     }
 
     pub fn get_mode(&self) -> anyhow::Result<Mode> {
@@ -101,7 +101,6 @@ impl Args {
     }
 }
 
-// Deref тут особого смысла не имеет, т.к. есть врапперы: get_configs_path и др., но пусть будет
 impl Deref for Args {
     type Target = ArgMatches;
     fn deref(&self) -> &Self::Target {
