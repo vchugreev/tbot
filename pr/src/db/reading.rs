@@ -35,14 +35,10 @@ pub async fn run(
 
     let dt = select_min_received_by_date(&pool, date)
         .await
-        .context("query to select min received failed")?;
+        .context("query to select min received failed")?
+        .ok_or(anyhow::anyhow!("minimum datetime not founded"))?;
 
-    if dt.is_none() {
-        let e = anyhow::Error::msg("minimum datetime not founded");
-        return anyhow::Result::Err(e);
-    }
-
-    let dt_start = DateTime::<Utc>::from_utc(dt.unwrap(), Utc);
+    let dt_start = DateTime::<Utc>::from_utc(dt, Utc);
     info!("datetime started: {}", dt_start);
 
     let conn = pool.acquire().await.unwrap();
