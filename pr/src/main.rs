@@ -1,51 +1,29 @@
-use anyhow::Context;
 use chrono::NaiveDate;
-use clap::{App, Arg, ArgMatches};
 use flexi_logger::Logger;
 use log::info;
 use tokio::sync::{broadcast, mpsc};
 use tokio::time;
 use tokio_util::sync::CancellationToken;
 
+use args::{Args, Mode};
+use domain::{order_book::OrderBook, trade::Trade};
+use server::receiver::ReceiverMaker;
 use settings::Settings;
 
-use self::domain::{order_book::OrderBook, trade::Trade};
-use self::server::receiver::ReceiverMaker;
-
+mod args;
 mod db;
 mod domain;
 mod server;
 mod settings;
 
-const CONFIGS: &str = "configs";
-const MIGRATIONS: &str = "migrations";
-const STORING: &str = "storing";
-const READING: &str = "reading";
-const SPEED: &str = "speed";
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let args = get_args();
+    let args = Args::new();
 
-    let configs_path = args.value_of(CONFIGS).unwrap_or("");
-    let migrations_path = args.value_of(MIGRATIONS).unwrap_or("");
+    let configs_path = args.get_configs_path();
+    let migrations_path = args.get_migrations_path();
 
-    let is_storing = args.is_present(STORING);
-
-    // В случае режима чтения мы указываем не только флаг, но и дату, для которой запускаем этот режим.
-    let reading_date = args.value_of(READING).unwrap_or("");
-    let speed = get_speed(&args)?;
-
-    // Обязательно должен быть указан один из двух режимов, в котором запущен сервис
-    if !is_storing && reading_date.is_empty() {
-        let err = anyhow::Error::msg("startup mode not defined, must be specified -s or -r (storing or reading)");
-        return anyhow::Result::Err(err);
-    }
-
-    // Одновременно использовать оба режима не допускается, этот запрет реализован в get_args через .conflicts_with
-    if is_storing && !reading_date.is_empty() {
-        unreachable!("there must by only one mode: storing or reading");
-    }
+    let mode = args.get_mode()?;
 
     let cfg: Settings = Settings::new(configs_path).expect("configs can't be loaded");
 
@@ -75,28 +53,29 @@ async fn main() -> anyhow::Result<()> {
     )
     .await?;
 
-    if is_storing {
-        db::storing::run(
-            cfg.db.url.clone(),
-            migrations_path,
-            fdc_trade_receiver,
-            fdc_order_book_receiver,
-            shutdown.clone(),
-        )
-        .await?;
-    }
-
-    if !reading_date.is_empty() {
-        let date = NaiveDate::parse_from_str(reading_date, "%Y-%m-%d").unwrap();
-        db::reading::run(
-            cfg.db.url.clone(),
-            date,
-            speed,
-            fec_trade_sender,
-            fec_order_book_sender,
-            shutdown.clone(),
-        )
-        .await?;
+    match mode {
+        Mode::Storing => {
+            db::storing::run(
+                cfg.db.url.clone(),
+                migrations_path,
+                fdc_trade_receiver,
+                fdc_order_book_receiver,
+                shutdown.clone(),
+            )
+            .await?;
+        }
+        Mode::Reading { date, speed } => {
+            let date = NaiveDate::parse_from_str(&date, "%Y-%m-%d").unwrap();
+            db::reading::run(
+                cfg.db.url.clone(),
+                date,
+                speed,
+                fec_trade_sender,
+                fec_order_book_sender,
+                shutdown.clone(),
+            )
+            .await?;
+        }
     }
 
     // До этого были неблокирующие вызовы, поэтому ждем сигнала о завершении и блокируем поток
@@ -107,63 +86,6 @@ async fn main() -> anyhow::Result<()> {
     info!("service finished");
 
     Ok(())
-}
-
-fn get_speed(args: &ArgMatches) -> anyhow::Result<u16> {
-    let speed = args.value_of(SPEED).unwrap_or("1");
-    let result = speed
-        .parse::<u16>()
-        .context("speed must by only unsigned integer: 1, 2, 3, ...")?;
-    if result == 0 {
-        let e = anyhow::Error::msg("speed must be greater than zero");
-        return Err(e);
-    }
-    Ok(result)
-}
-
-fn get_args() -> ArgMatches {
-    App::new("price repository")
-        .version("0.1.0")
-        .about("tinkoff investments microservice for storage")
-        .arg(
-            Arg::new(CONFIGS)
-                .short('c')
-                .long(CONFIGS)
-                .value_name("PATH TO CONFIGS")
-                .about("sets a custom path to configuration files"),
-        )
-        .arg(
-            Arg::new(MIGRATIONS)
-                .short('m')
-                .long(MIGRATIONS)
-                .value_name("PATH TO MIGRATIONS")
-                .about("sets a custom path to migrations files"),
-        )
-        .arg(
-            Arg::new(STORING)
-                .short('s')
-                .long(STORING)
-                .value_name("STORING MODE")
-                .takes_value(false)
-                .conflicts_with_all(&[READING, SPEED])
-                .about("sets a storing mode"),
-        )
-        .arg(
-            Arg::new(READING)
-                .short('r')
-                .long(READING)
-                .value_name("READING MODE")
-                .conflicts_with(STORING)
-                .requires(SPEED)
-                .about("sets a reading mode"),
-        )
-        .arg(
-            Arg::new(SPEED)
-                .index(1)
-                .default_value("1")
-                .about("sets a speed rate reading"),
-        )
-        .get_matches()
 }
 
 fn run_ctrlc() -> anyhow::Result<CancellationToken> {
