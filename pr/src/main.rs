@@ -12,35 +12,10 @@ use settings::Settings;
 use self::domain::{order_book::OrderBook, trade::Trade};
 use self::server::receiver::ReceiverMaker;
 
-mod db {
-    pub(super) mod queries;
-    pub mod reading;
-    pub mod storing;
-}
-
-mod server {
-    pub mod grpc;
-    pub mod receiver;
-    #[macro_use]
-    pub mod services {
-        #[macro_use]
-        pub mod proto {
-            #[macro_use]
-            pub mod convert;
-            pub mod utils;
-        }
-        pub mod price_storage;
-        pub mod price_stream;
-    }
-}
-
+mod db;
+mod domain;
+mod server;
 mod settings;
-
-mod domain {
-    pub mod common;
-    pub mod order_book;
-    pub mod trade;
-}
 
 const CONFIGS: &str = "configs";
 const MIGRATIONS: &str = "migrations";

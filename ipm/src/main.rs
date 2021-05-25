@@ -11,32 +11,13 @@ use self::client::ws::{emulator as ws_emulator, reader as ws_reader};
 use self::domain::{order_book::OrderBook, trade::Trade};
 use self::settings::{Settings, Tinkoff};
 
-mod receiver;
-mod settings;
 #[macro_use]
-mod proto {
-    #[macro_use]
-    mod convert;
-}
-
-mod server {
-    pub mod grpc;
-}
-
-mod client {
-    pub mod grpc;
-    pub mod ws {
-        pub(self) mod candle;
-        pub mod emulator;
-        pub(self) mod order_book;
-        pub mod reader;
-    }
-}
-
-mod domain {
-    pub mod order_book;
-    pub mod trade;
-}
+mod proto;
+mod client;
+mod domain;
+mod receiver;
+mod server;
+mod settings;
 
 const CONFIGS: &str = "configs";
 const WS_EMULATE: &str = "ws_emulate";
