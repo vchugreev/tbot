@@ -2,7 +2,7 @@ use std::fmt::Debug;
 use std::ops::Add;
 use std::str::FromStr;
 
-use anyhow::Context;
+use anyhow::{anyhow, Context};
 use chrono::{DateTime, Duration, NaiveDate, NaiveDateTime, Utc};
 use futures::TryStreamExt;
 use log::{debug, error, info};
@@ -36,7 +36,7 @@ pub async fn run(
     let dt = select_min_received_by_date(&pool, date)
         .await
         .context("query to select min received failed")?
-        .ok_or(anyhow::anyhow!("minimum datetime not founded"))?;
+        .ok_or(anyhow!("minimum datetime not founded"))?;
 
     let dt_start = DateTime::<Utc>::from_utc(dt, Utc);
     info!("datetime started: {}", dt_start);
