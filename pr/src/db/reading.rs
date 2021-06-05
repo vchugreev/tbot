@@ -41,7 +41,11 @@ pub async fn run(
     let dt_start = DateTime::<Utc>::from_utc(dt, Utc);
     info!("datetime started: {}", dt_start);
 
-    let conn = pool.acquire().await.unwrap();
+    let conn = pool
+        .acquire()
+        .await
+        .context("retrieves a connection from the pool failed")?;
+
     let trade_task = reading::<DomainTrade>(
         conn,
         TRADE_TABLE.to_string(),
@@ -53,7 +57,11 @@ pub async fn run(
     )
     .await;
 
-    let conn = pool.acquire().await.unwrap();
+    let conn = pool
+        .acquire()
+        .await
+        .context("retrieves a connection from the pool failed")?;
+
     let order_book_task = reading::<DomainOrderBook>(
         conn,
         ORDER_BOOK_TABLE.to_string(),
