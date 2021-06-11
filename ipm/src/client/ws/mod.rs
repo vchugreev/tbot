@@ -11,8 +11,12 @@ use tungstenite::{handshake::client::Request, Message};
 use crate::domain::{order_book::OrderBook, trade::Trade};
 use crate::settings::Tinkoff;
 
-use super::candle::{CandlePayload, SubscribeCandleReq};
-use super::order_book::{OrderBookPayload, SubscribeOrderBookReq};
+use candle::{CandlePayload, SubscribeCandleReq};
+use order_book::{OrderBookPayload, SubscribeOrderBookReq};
+
+mod candle;
+pub mod emulator;
+mod order_book;
 
 pub async fn run(
     cfg: Tinkoff,

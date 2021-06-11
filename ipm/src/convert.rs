@@ -1,3 +1,4 @@
+#[macro_use]
 macro_rules! order_book_from {
     ($p: path) => {
         type DomainOrderBook = crate::domain::order_book::OrderBook;

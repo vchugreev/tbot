@@ -39,7 +39,7 @@ async fn main() -> anyhow::Result<()> {
     let (fdc_trade_sender, fdc_trade_receiver) = mpsc::channel::<Trade>(20);
     let (fdc_order_book_sender, fdc_order_book_receiver) = mpsc::channel::<OrderBook>(20);
 
-    server::grpc::run(
+    server::run(
         cfg.server.addr,
         ReceiverMaker::<Trade>::new(fec_trade_sender.clone()),
         ReceiverMaker::<OrderBook>::new(fec_order_book_sender.clone()),

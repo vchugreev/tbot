@@ -5,13 +5,13 @@ use tokio::time;
 use tokio_util::sync::CancellationToken;
 
 use args::Args;
-use client::ws::{emulator as ws_emulator, reader as ws_reader};
+use client::ws::{self, emulator as ws_emulator};
 use domain::{order_book::OrderBook, trade::Trade};
 use receiver::ReceiverMaker;
 use settings::{Settings, Tinkoff};
 
 #[macro_use]
-mod proto;
+mod convert;
 mod args;
 mod client;
 mod domain;
@@ -55,7 +55,7 @@ async fn main() -> anyhow::Result<()> {
     }
 
     let (trade_rm, order_book_rm) = create_receivers(trade_sender.clone(), order_book_sender.clone());
-    server::grpc::run(cfg.server.addr, trade_rm, order_book_rm, shutdown.clone()).await?;
+    server::run(cfg.server.addr, trade_rm, order_book_rm, shutdown.clone()).await?;
 
     if args.is_repository() {
         let (trade_rm, order_book_rm) = create_receivers(trade_sender.clone(), order_book_sender.clone());
@@ -90,7 +90,7 @@ async fn start_and_restart_ws_client(
     tokio::spawn(async move {
         loop {
             tokio::select! {
-                Err(err) = ws_reader::run(tinkoff.clone(), trade_sender.clone(), order_book_sender.clone(), shutdown.clone()) => {
+                Err(err) = ws::run(tinkoff.clone(), trade_sender.clone(), order_book_sender.clone(), shutdown.clone()) => {
                     error!("ws client not running: {}, retry will be in 1 second", err);
                     time::sleep(time::Duration::from_secs(1)).await;
                 },
