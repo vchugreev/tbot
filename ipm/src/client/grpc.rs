@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use log::{error, info};
 use tokio::sync::broadcast;
 use tokio_util::sync::CancellationToken;
@@ -87,8 +88,7 @@ async fn send_trade(client: &mut PriceStorageClient<Channel>, trade: DomainTrade
         Ok(_) => None,
         Err(err) => {
             error!("trade sending error: {:?}", err);
-            let e = anyhow::Error::msg(format!("streaming error: {:?}", err)); // Конвертируем tonic::Status в anyhow::Error
-            Some(anyhow::Result::Err(e)) // Выходим с ошибкой, это приведет к переподключению (start_and_restart_grpc_client)
+            Some(Err(anyhow!("streaming error: {:?}", err))) // Выходим с ошибкой, это приведет к переподключению (start_and_restart_grpc_client)
         }
     }
 }
@@ -104,8 +104,7 @@ async fn send_order_book(
         Ok(_) => None,
         Err(err) => {
             error!("order book sending error: {:?}", err);
-            let e = anyhow::Error::msg(format!("streaming error: {:?}", err));
-            Some(anyhow::Result::Err(e))
+            Some(Err(anyhow!("streaming error: {:?}", err)))
         }
     }
 }
