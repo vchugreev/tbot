@@ -106,12 +106,10 @@ fn process_new_item(
     trade_sender: broadcast::Sender<Trade>,
     order_book_sender: broadcast::Sender<OrderBook>,
 ) -> Option<anyhow::Result<()>> {
-    if item.is_err() {
-        // Возможные ошибки: https://docs.rs/tungstenite/0.13.0/tungstenite/error/enum.Error.html
-        let err = item.err().unwrap();
+    // Возможные ошибки: https://docs.rs/tungstenite/0.13.0/tungstenite/error/enum.Error.html
+    if let Err(err) = item {
         log::error!("streaming error: {:?}", err);
-        let e = anyhow::Error::msg(format!("streaming error: {:?}", err));
-        return Some(anyhow::Result::Err(e)); // Выходим с ошибкой, это приведет к переподключению (start_and_restart_ws_client)
+        return Some(Err(anyhow!("streaming error: {:?}", err))); // Выходим с ошибкой, это приведет к переподключению (start_and_restart_ws_client)
     }
 
     // Возможные типы сообщения: https://docs.rs/tungstenite/0.13.0/tungstenite/enum.Message.html
