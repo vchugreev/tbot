@@ -31,7 +31,12 @@ pub async fn run(
 ) -> anyhow::Result<()> {
     let mut options = PgConnectOptions::from_str(db_url.as_str())?;
     options.disable_statement_logging();
-    let pool = PgPoolOptions::new().max_connections(5).connect_with(options).await?;
+    let pool = PgPoolOptions::new()
+        .max_connections(5)
+        .connect_timeout(std::time::Duration::from_secs(1))
+        .connect_with(options)
+        .await
+        .context("db connect failed")?;
 
     let dt = select_min_received_by_date(&pool, date)
         .await

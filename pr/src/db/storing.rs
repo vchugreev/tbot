@@ -1,5 +1,7 @@
 use std::str::FromStr;
+use std::time::Duration;
 
+use anyhow::Context;
 use log::{error, info};
 use sqlx::migrate::Migrator;
 use sqlx::pool::Pool;
@@ -23,10 +25,12 @@ pub async fn run(
 ) -> anyhow::Result<()> {
     let mut options = PgConnectOptions::from_str(db_url.as_str())?;
     options.disable_statement_logging(); // TODO: временное решение, ждем когда допилят настройку логирования https://github.com/launchbadge/sqlx/issues/942
-    let pool = PgPoolOptions::new().max_connections(5).connect_with(options).await?;
-
-    // Оставил в качестве примера, если делать без отключения логирования
-    // let pool = PgPoolOptions::new().max_connections(5).connect(db_url.as_str()).await?;
+    let pool = PgPoolOptions::new()
+        .max_connections(5)
+        .connect_timeout(Duration::from_secs(1))
+        .connect_with(options)
+        .await
+        .context("db connect failed")?;
 
     let path = match migrations_path {
         Some(p) => p,
