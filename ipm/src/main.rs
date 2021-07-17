@@ -24,7 +24,7 @@ async fn main() -> anyhow::Result<()> {
     let args = Args::new();
     let cfg: Settings = Settings::new(args.get_configs_path()).expect("configs can't be loaded");
 
-    Logger::with_str(cfg.log.level.as_str())
+    Logger::try_with_str(cfg.log.level.as_str())?
         .format(flexi_logger::colored_detailed_format)
         .start()?;
 
