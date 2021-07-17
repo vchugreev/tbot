@@ -17,7 +17,7 @@ const URL: &str = "https://[::1]:10000";
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    Logger::with_str("info")
+    Logger::try_with_str("info")?
         .format(flexi_logger::colored_detailed_format)
         .start()?;
 
