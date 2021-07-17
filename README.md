@@ -47,7 +47,7 @@ cargo run -p pr -- -c ./pr/configs/ -m ./pr/migrations/ -s
 Первый флаг `-p` отвечает за выбор проекта. Если запускать из директории проектов, параметр с указанием пути к конфигурационным 
 файлам можно отпустить, примеры здесь: [ipm/README.md](ipm/README.md), [pr/README.md](pr/README.md) 
 
-### Запуск сервиса в произвольном режиме
+### Запуск сервиса в заданном режиме
 
 ```shell
 RUN_ENV=Testing cargo run -p ipm -- -c ./ipm/configs/
